@@ -45,7 +45,7 @@ export async function getInboxData(email: string): Promise<ApiResponse<EmailMess
     }
 
     const encodedEmail = encodeURIComponent(email)
-    const response = await fetch(`${siteConfig.apiBaseUrl}/tempmail/<${encodedEmail}>`, {
+    const response = await fetch(`${siteConfig.apiBaseUrl}/tempmail/${encodedEmail}`, {
       method: "GET"
     })
 
