@@ -5,6 +5,7 @@ export interface EmailMessage {
   from: string
   subject: string
   body: string
+  Body: string
   received_at: string
 }
 
