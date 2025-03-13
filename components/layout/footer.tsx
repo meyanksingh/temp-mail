@@ -40,31 +40,8 @@ export default function Footer() {
             <h3 className="text-sm font-medium">Product</h3>
             <ul className="space-y-3">
               <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Features
-                </Link>
-              </li>
-              
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  FAQ
-                </Link>
-              </li>
-            </ul>
-          </div>
-
-          <div className="space-y-4">
-            <h3 className="text-sm font-medium">Company</h3>
-            <ul className="space-y-3">
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  About
-                </Link>
-              </li>
-              
-              <li>
-                <Link href="/" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
-                  Contact
+                <Link href="/inbox" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
+                  Inbox
                 </Link>
               </li>
             </ul>
