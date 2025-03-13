@@ -64,19 +64,19 @@ export async function getInboxData(
     const data = await response.json();
     console.log("data", data.messages);
 
-    const formattedMessages = data.messages.map((msg: any) => {
-      // Extract the body content (plain text) using regex
-      const plainTextMatch = msg.Body.match(
-        /Content-Type: text\/plain; charset="UTF-8"\r\n\r\n([\s\S]*?)\r\n--/
-      );
-      const bodyContent = plainTextMatch ? plainTextMatch[1].trim() : ""; // Extracted plain text content
-
+    const formattedMessages = data.messages.map((msg: {
+      ID: number;
+      From: string;
+      To: string;
+      Subject: string;
+      Body: string;
+    }) => {
       return {
         id: msg.ID.toString(),
         from: msg.From,
         to: msg.To,
         subject: msg.Subject,
-        body: bodyContent, // Only include extracted plain text
+        body: msg.Body,
         received_at: new Date().toISOString(),
       };
     });
