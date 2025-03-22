@@ -14,8 +14,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const parsedEmail = await parseEmailContent(body.rawEmail);
 
+    
+    const parsedEmail = await parseEmailContent(body.rawEmail);
+    
     return NextResponse.json({ ...parsedEmail });
   } catch (error) {
     console.error("Error parsing email:", error);
@@ -44,20 +46,65 @@ export async function parseEmailContent(
   rawData: string
 ): Promise<SemiParserEmail> {
   try {
+    
+    // Try to parse with simpleParser first
     const parsed = await simpleParser(rawData);
+    
+    // If we have HTML content, use it directly
+    if (parsed.html) {
+      return {
+        subject: parsed.subject || "",
+        from: parsed.from?.text || "",
+        text: parsed.text || "",
+        html: parsed.html,
+        text_as_html: parsed.textAsHtml || parsed.text || "",
+        attachments: parsed.attachments || [],
+        date: parsed.date || new Date(),
+      };
+    }
 
-    let a = {
+    // If no HTML but we have text, convert it to HTML
+    if (parsed.text) {
+      const htmlContent = parsed.text
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0)
+        .join('<br>');
+
+      return {
+        subject: parsed.subject || "",
+        from: parsed.from?.text || "",
+        text: parsed.text,
+        html: htmlContent,
+        text_as_html: htmlContent,
+        attachments: parsed.attachments || [],
+        date: parsed.date || new Date(),
+      };
+    }
+
+    // Fallback: try to extract content from raw email
+    const textMatch = rawData.match(/Content-Type: text\/plain;[\s\S]*?\r\n\r\n([\s\S]*?)(?:\r\n--|\s*$)/i);
+    const htmlMatch = rawData.match(/Content-Type: text\/html;[\s\S]*?\r\n\r\n([\s\S]*?)(?:\r\n--|\s*$)/i);
+
+
+    const text = textMatch ? textMatch[1].trim() : rawData;
+    const html = htmlMatch ? htmlMatch[1].trim() : text.split('\n').join('<br>');
+
+    const result = {
       subject: parsed.subject || "",
       from: parsed.from?.text || "",
-      text: parsed.text || "",
-      html: parsed.html || decodeQP(rawData),
-      text_as_html: parsed.textAsHtml || "",
+      text: text,
+      html: html,
+      text_as_html: html,
       attachments: parsed.attachments || [],
       date: parsed.date || new Date(),
     };
-    return a;
+    
+ 
+    
+    return result;
   } catch (error) {
-    console.error("Error parsing email:", error);
+    console.error("Error in parseEmailContent:", error);
     throw error;
   }
 }

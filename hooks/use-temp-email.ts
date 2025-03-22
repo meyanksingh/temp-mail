@@ -28,6 +28,7 @@ export function useTempEmail() {
       const result = await getInboxData(email);
 
       if (result.error) {
+        console.error('Error fetching inbox:', result.error);
         setError(result.error.message);
         toast({
           title: "Error",
@@ -35,6 +36,7 @@ export function useTempEmail() {
           variant: "destructive",
         });
       } else if (result.data) {
+
         setMessages(result.data);
         setLastRefreshed(new Date());
         setError(null);
@@ -67,7 +69,7 @@ export function useTempEmail() {
       } else if (result.data) {
         const newEmail = result.data;
         const timestamp = Date.now();
-
+        
         setEmail(newEmail);
         localStorage.setItem(EMAIL_STORAGE_KEY, newEmail);
         localStorage.setItem(EMAIL_TIMESTAMP_KEY, timestamp.toString());
@@ -103,16 +105,20 @@ export function useTempEmail() {
         if (savedEmail && savedTimestamp) {
           const timestamp = parseInt(savedTimestamp, 10);
           const currentTime = Date.now();
+          const timeElapsed = currentTime - timestamp;
+          
+      
 
-          if (currentTime - timestamp < EMAIL_EXPIRY_TIME) {
+          if (timeElapsed < EMAIL_EXPIRY_TIME) {
             setEmail(savedEmail);
           } else {
+            await generateNewEmail();
           }
         } else {
-          // No saved email, generate a new one
-          await generateNewEmail();
+         await generateNewEmail();
         }
       } catch (err) {
+        console.error('Exception in initializeEmail:', err);
         setError("Failed to initialize email. Please refresh the page.");
         toast({
           title: "Error",

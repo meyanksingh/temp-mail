@@ -17,7 +17,6 @@ export async function generateTempEmail(): Promise<ApiResponse<string>> {
     }
 
     const data = await response.json();
-    console.log("data", data);
     return { data: data.email };
   } catch (error) {
     console.error("Error generating temporary email:", error);
@@ -44,7 +43,6 @@ export async function getInboxData(
     }
 
     const encodedEmail = encodeURIComponent(email).replace("%40", "@").toLowerCase();
-    console.log(encodedEmail)
     const response = await fetch(
       `${siteConfig.apiBaseUrl}/tempmail/${encodedEmail}`,
       {
@@ -62,23 +60,28 @@ export async function getInboxData(
     }
 
     const data = await response.json();
-    console.log("data", data.messages);
 
-    const formattedMessages = data.messages.map((msg: {
-      ID: number;
-      From: string;
-      To: string;
-      Subject: string;
-      Body: string;
-    }) => {
-      return {
-        id: msg.ID.toString(),
-        from: msg.From,
-        to: msg.To,
-        subject: msg.Subject,
-        body: msg.Body,
-        received_at: new Date().toISOString(),
+    
+    const formattedMessages = data.messages.map((msg: any) => {
+      
+      // Handle different API response structures
+      const messageId = msg.id || msg.ID || 0;
+      const messageFrom = msg.from || msg.From || '';
+      const messageTo = msg.to || msg.To || '';
+      const messageSubject = msg.subject || msg.Subject || '(No Subject)';
+      const messageBody = msg.body || msg.Body || '';
+      const messageDate = msg.created_at || msg.CreatedAt || new Date().toISOString();
+      
+      const formattedMessage = {
+        id: String(messageId || Date.now()),
+        from: messageFrom ? messageFrom.replace(/\u003c/g, '<').replace(/\u003e/g, '>') : '',
+        to: messageTo || '',
+        subject: messageSubject || '(No Subject)',
+        body: messageBody || '',
+        received_at: messageDate || new Date().toISOString(),
       };
+      
+      return formattedMessage;
     });
 
     return { data: formattedMessages };

@@ -2,7 +2,7 @@ import type { AppConfig } from "@/lib/types"
 
 export const siteConfig: AppConfig = {
   apiBaseUrl: "https://mail.meyank.me",
-  emailExpiryMinutes: 10,
+  emailExpiryMinutes: 30,
   refreshInterval: 30000, 
   appName: "TempMail",
   appDescription: "Secure temporary email service for your privacy needs",

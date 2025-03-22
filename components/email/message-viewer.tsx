@@ -28,15 +28,11 @@ export function MessageViewer({
 }: MessageViewerProps) {
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState("preview");
+  const [parsedEmail, setParsedEmail] = useState<any>(null);
 
   const handleCopyContent = () => {
     if (!message) return;
-
-    // Create a temporary div to get text content from HTML
-    const tempDiv = document.createElement("div");
-    tempDiv.innerHTML = message.body;
-    const textContent = tempDiv.textContent || tempDiv.innerText || "";
-
+    const textContent = parsedEmail?.html?.replace(/<[^>]*>/g, '') || message.body;
     navigator.clipboard.writeText(textContent);
     toast({
       title: "Message copied",
@@ -50,10 +46,13 @@ export function MessageViewer({
     onDelete(message.id);
   };
 
-  const [parsedEmail, setParsedEmail] = useState<any>(null);
   useEffect(() => {
-    if (!message) return;
+    if (!message?.body) {
+      setParsedEmail(null);
+      return;
+    }
 
+    
     fetch("/api/parse", {
       method: "POST",
       headers: {
@@ -63,14 +62,41 @@ export function MessageViewer({
         rawEmail: message.body,
       }),
     })
-      .then((res) => res.json())
+      .then((res) => {
+        if (!res.ok) {
+          throw new Error(`Failed to parse email: ${res.status}`);
+        }
+        return res.json();
+      })
       .then((data) => {
-        setParsedEmail(data);
+        // Only keep HTML content, discard all text content
+        setParsedEmail({
+          html: data.html || '',
+          // Keep essential metadata
+          date: data.date,
+          attachments: data.attachments
+        });
       })
       .catch((error) => {
-        console.error("Error parsing email:", error);
+        setParsedEmail(null);
       });
   }, [message]);
+
+  const getDisplayContent = () => {
+    if (!message) {
+      return "(No Content)";
+    }
+    
+    if (!parsedEmail) {
+      return "<div class='text-center p-4'>Loading content...</div>";
+    }
+    
+    if (parsedEmail.html && parsedEmail.html.trim()) {
+      return parsedEmail.html;
+    }
+    
+    return "<div class='text-center p-4'>No HTML content available</div>";
+  };
 
   return (
     <Card className={`h-full border shadow-sm ${className}`}>
@@ -120,7 +146,7 @@ export function MessageViewer({
                   <div
                     className="whitespace-pre-wrap break-words prose dark:prose-invert max-w-none"
                     dangerouslySetInnerHTML={{
-                      __html: parsedEmail?.html || "<p>(No Content)</p>",
+                      __html: getDisplayContent(),
                     }}
                   />
                 </div>

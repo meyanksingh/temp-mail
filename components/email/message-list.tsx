@@ -12,6 +12,20 @@ import { cn } from "@/lib/utils"
 import type { EmailMessage } from "@/lib/types"
 import { useToast } from "@/components/ui/use-toast"
 
+const extractPlainTextContent = (body: string): string => {
+  // Look for the text/plain part
+  const plainTextMatch = body.match(/Content-Type: text\/plain;[\s\S]*?\r\n\r\n([\s\S]*?)\r\n--/);
+  if (plainTextMatch && plainTextMatch[1]) {
+    return plainTextMatch[1].trim();
+  }
+  // Fallback: Remove all HTML tags and MIME boundaries
+  return body.replace(/--.*?(?:\r\n|\n)/g, '')
+            .replace(/<[^>]*>/g, '')
+            .replace(/Content-Type:.*?\r\n/g, '')
+            .replace(/\r\n\r\n/g, '\n')
+            .trim();
+}
+
 interface MessageListProps {
   messages: EmailMessage[]
   lastRefreshed: Date
@@ -96,7 +110,9 @@ export function MessageList({
                 </Badge>
               </div>
               <div className="text-sm font-medium truncate">{message.subject}</div>
-              <div className="text-xs text-muted-foreground truncate">{message.body.substring(0, 60)}...</div>
+              <div className="text-xs text-muted-foreground truncate">
+                {message.body ? extractPlainTextContent(message.body).substring(0, 100) + '...' : 'No content'}
+              </div>
               <div className="flex justify-end mt-2">
                 <Button
                   variant="ghost"
