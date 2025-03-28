@@ -24,9 +24,7 @@ A modern, secure temporary email service built with Next.js 14, React, and TypeS
 - **UI Components**: Radix UI + Shadcn/ui
 - **State Management**: React Hooks
 - **Email Parsing**: DOMPurify for HTML sanitization
-- **Date Handling**: date-fns
 - **Icons**: Lucide Icons
-- **API**: RESTful endpoints with JSON responses
 
 ## Getting Started
 
